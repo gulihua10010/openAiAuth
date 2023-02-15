@@ -1,4 +1,4 @@
-package com.openai.auth;
+package cn.jianwoo.openai.auth;
 
 import java.net.Proxy;
 

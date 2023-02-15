@@ -1,19 +1,15 @@
-package com.openai.auth;
-
-import cn.hutool.core.net.url.UrlBuilder;
-import cn.hutool.core.util.CharsetUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.HttpException;
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
-import cn.hutool.http.HttpUtil;
-import com.alibaba.fastjson.JSONObject;
-import com.sun.xml.internal.bind.v2.TODO;
+package cn.jianwoo.openai.auth;
 
 import java.net.HttpCookie;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.alibaba.fastjson.JSONObject;
+
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpResponse;
 
 /**
  * OpenAiAuth 登录实现

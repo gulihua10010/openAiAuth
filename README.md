@@ -1,15 +1,24 @@
 # openAiAuth
 openAI/chatGpt 用户名、密码授权登录 jar 包封装
 
+[English Doc](README_en.md).
+
 ## 用法
 
 ```java
-String accessToken = new OpenAiAuth("1729846470@qq.com", "xxxxxxxxxx").auth();
+String accessToken = new OpenAiAuth("<Your email>", "Your password").auth();
+```
+#### 使用代理
+
+```java
+String accessToken = new OpenAiAuth("<Your email>", "Your password", new Proxy(Proxy.Type.HTTP,
+                new InetSocketAddress("<host>", "<port>"))).auth();
 ```
 
 ## 注意
 
 由于官网的 API 接口有时会调整，不能保证这个 jar 包一定调成功，如果失败可以留言。
+本程序不会传输或保存任何数据到服务器上!
 
 
 
