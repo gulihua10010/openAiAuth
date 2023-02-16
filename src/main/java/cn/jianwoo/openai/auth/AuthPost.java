@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson.JSONObject;
 
 import cn.hutool.core.util.StrUtil;
@@ -22,6 +24,9 @@ import cn.hutool.http.HttpResponse;
  */
 public class AuthPost
 {
+    private static final Log log = LogFactory.get();
+    public static final String ERROR_CODE = "999999";
+    public static final String ERROR_MSG = "Authorization service error, code returns %s";
     private static Map<String, String> HEADER;
     public static final String URL_1 = "https://explorer.api.openai.com/";
     public static final String URL_2 = "https://explorer.api.openai.com/api/auth/csrf";
@@ -83,7 +88,8 @@ public class AuthPost
                 .execute();
         if (response.getStatus() != 200)
         {
-            throw new Exception(formatMsg1(URL_1, response.getStatus()));
+            log.error(formatMsg1(URL_1, response.getStatus()));
+            throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         cookies = response.getCookies();
         return post2();
@@ -110,7 +116,8 @@ public class AuthPost
                 .cookie(cookies).execute();
         if (response.getStatus() != 200)
         {
-            throw new Exception(formatMsg1(URL_2, response.getStatus()));
+            log.error(formatMsg1(URL_2, response.getStatus()));
+            throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         String csrfToken = null;
         try
@@ -122,8 +129,8 @@ public class AuthPost
         }
         catch (Exception e)
         {
-            throw new Exception(formatMsg2(URL_2, response.body()));
-
+            log.error(formatMsg2(URL_2, response.body()));
+            throw new PostException("300001", "The csrfToken cannot be obtained.");
         }
 
         cookies = response.getCookies();
@@ -161,7 +168,8 @@ public class AuthPost
                 .setProxy(openAiAuth.getProxy()).cookie(cookies).execute();
         if (response.getStatus() != 200)
         {
-            throw new Exception(formatMsg1(URL_3, response.getStatus()));
+            log.error(formatMsg1(URL_3, response.getStatus()));
+            throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
 
         String url = null;
@@ -174,12 +182,13 @@ public class AuthPost
         }
         catch (Exception e)
         {
-            throw new Exception(formatMsg2(URL_2, response.body()));
+            log.error(formatMsg2(URL_3, response.body()));
+            throw new PostException(ERROR_CODE, "The URL cannot be obtained.");
 
         }
         if (StrUtil.isBlank(url) || url.contains("error"))
         {
-            throw new Exception("You have been rate limited.");
+            throw new PostException("200001", "You have been rate limited.");
         }
         cookies = response.getCookies();
         return post4(url);
@@ -205,11 +214,13 @@ public class AuthPost
                 .cookie(cookies).execute();
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
-            throw new Exception(formatMsg1(url, response.getStatus()));
+            log.error(formatMsg1(url, response.getStatus()));
+            throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         if (!response.body().contains("state"))
         {
-            throw new Exception(formatMsg2(url, response.body()));
+            log.error(formatMsg2(url, response.body()));
+            throw new PostException("300001", "The state cannot be obtained.");
         }
 
         cookies = response.getCookies();
@@ -240,7 +251,8 @@ public class AuthPost
                 .setProxy(openAiAuth.getProxy()).cookie(cookies).execute();
         if (response.getStatus() != 200)
         {
-            throw new Exception(formatMsg1(String.format(URL_5, state), response.getStatus()));
+            log.error(formatMsg1(URL_5, response.getStatus()));
+            throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         cookies = response.getCookies();
 
@@ -280,11 +292,13 @@ public class AuthPost
                 .setProxy(openAiAuth.getProxy()).cookie(cookies).execute();
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
-            throw new Exception(formatMsg1(String.format(URL_6, state), response.getStatus()));
+            log.error(formatMsg1(URL_6, response.getStatus()));
+            throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         if (!response.body().contains("state"))
         {
-            throw new Exception(formatMsg2(String.format(URL_7, state), response.body()));
+            log.error(formatMsg2(URL_6, response.body()));
+            throw new PostException("300001", "The state cannot be obtained.");
         }
 
         cookies = response.getCookies();
@@ -318,10 +332,16 @@ public class AuthPost
         payload.put("action", "default");
         HttpResponse response = HttpRequest.post(String.format(URL_7, state)).headerMap(headers, true).form(payload)
                 .setProxy(openAiAuth.getProxy()).cookie(cookies).execute();
+        if (response.getStatus() == 400)
+        {
+            throw new PostException("400001", "The email or password is incorrect.");
+        }
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
-            throw new Exception(formatMsg1(String.format(URL_7, state), response.getStatus()));
+            log.error(formatMsg1(URL_7, response.getStatus()));
+            throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
+
         cookies = response.getCookies();
 
         String newstate = response.body().split("state")[1];
@@ -353,7 +373,8 @@ public class AuthPost
                 .setProxy(openAiAuth.getProxy()).cookie(cookies).execute();
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
-            throw new Exception(formatMsg1(String.format(URL_8, newstate), response.getStatus()));
+            log.error(formatMsg1(URL_8, response.getStatus()));
+            throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         cookies = response.getCookies();
         String url = response.body().split(" href=\"")[1];
@@ -383,7 +404,8 @@ public class AuthPost
         HttpResponse response = HttpRequest.get(url).headerMap(headers, true).setProxy(openAiAuth.getProxy()).execute();
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
-            throw new Exception(formatMsg1(url, response.getStatus()));
+            log.error(formatMsg1(url, response.getStatus()));
+            throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
 
         cookies = response.getCookies();
@@ -416,7 +438,8 @@ public class AuthPost
                 .cookie(cookies).execute();
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
-            throw new Exception(formatMsg1(URL_10, response.getStatus()));
+            log.error(formatMsg1(URL_10, response.getStatus()));
+            throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
 
 //
@@ -432,7 +455,8 @@ public class AuthPost
         }
         catch (Exception e)
         {
-            throw new Exception(formatMsg2(URL_2, response.body()));
+            log.error(formatMsg2(URL_10, response.body()));
+            throw new PostException("300001", "The accessToken cannot be obtained.");
 
         }
         if (StrUtil.isBlank(accessToken))

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>cn.jianwoo.openai.auth</groupId>
     <artifactId>openAiAuth</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <name>fundebug-java-notifier</name>
     <url>https://github.com/gulihua10010/openAiAuth</url>
     <description>openAI/chatGpt User name and password Authorized login The jar package is encapsulated</description>
@@ -17,6 +17,18 @@
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
             <version>5.4.3</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-to-slf4j</artifactId>
+            <version>2.13.3</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
