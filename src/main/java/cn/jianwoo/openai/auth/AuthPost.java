@@ -4,7 +4,10 @@ import java.net.HttpCookie;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
+import cn.hutool.core.util.ReUtil;
+import cn.hutool.http.HtmlUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson.JSONObject;
@@ -35,9 +38,10 @@ public class AuthPost
     public static final String URL_5 = "https://auth0.openai.com/u/login/identifier?state=%s";
     public static final String URL_6 = "https://auth0.openai.com/u/login/identifier?state=%s";
     public static final String URL_7 = "https://auth0.openai.com/u/login/password?state=%s";
-    public static final String URL_8 = "https://auth0.openai.com/authorize/resume?state=%s";
-    public static final String URL_9 = "https://explorer.api.openai.com/api/auth/callback/auth0?code=%s&state=%s";
-    public static final String URL_10 = "https://explorer.api.openai.com/api/auth/session";
+    public static final String URL_8 = "https://auth0.openai.com/u/login/password?state=%s";
+    public static final String URL_9 = "https://auth0.openai.com/authorize/resume?state=%s";
+    public static final String URL_10 = "https://explorer.api.openai.com/api/auth/callback/auth0?code=%s&state=%s";
+    public static final String URL_11 = "https://explorer.api.openai.com/api/auth/session";
     public static final String ERR_MESSAGE1 = "Request Url (%s) failed with error code %s";
     public static final String ERR_MESSAGE2 = "Request Url (%s) failed with msg %s";
     private OpenAiAuth openAiAuth;
@@ -66,7 +70,7 @@ public class AuthPost
     }
 
 
-    public String post() throws Exception
+    public String post() throws PostException
     {
         return post1();
     }
@@ -79,7 +83,7 @@ public class AuthPost
      * @author gulihua
      * @return
      */
-    private String post1() throws Exception
+    private String post1() throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -104,7 +108,7 @@ public class AuthPost
      * @author gulihua
      * @return
      */
-    private String post2() throws Exception
+    private String post2() throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -146,7 +150,7 @@ public class AuthPost
      * @param csrfToken csrf token
      * @return
      */
-    private String post3(String csrfToken) throws Exception
+    private String post3(String csrfToken) throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -203,7 +207,7 @@ public class AuthPost
      * @param url 上一步返回的 url 地址
      * @return
      */
-    private String post4(String url) throws Exception
+    private String post4(String url) throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -239,7 +243,7 @@ public class AuthPost
      * @param state state
      * @return
      */
-    private String post5(String state) throws Exception
+    private String post5(String state) throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -269,7 +273,7 @@ public class AuthPost
      * @param state state
      * @return
      */
-    private String post6(String state) throws Exception
+    private String post6(String state) throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -305,6 +309,34 @@ public class AuthPost
 
         return post7(state);
     }
+    /**
+     *
+     * 请求/u/login/password?state=%s
+     *
+     * @author gulihua
+     * @param state state
+     * @return
+     */
+    private String post7(String state) throws PostException
+    {
+        Map<String, String> headers = new HashMap<>();
+        headers.putAll(HEADER);
+        headers.put("Host", "auth0.openai.com");
+        headers.put("Referer", "https://explorer.api.openai.com/");
+        headers.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+
+        HttpResponse response = HttpRequest.get(String.format(URL_7, state)).headerMap(headers, true)
+                .setProxy(openAiAuth.getProxy()).cookie(cookies).execute();
+        if (response.getStatus() != 200)
+        {
+            log.error(formatMsg1(URL_7, response.getStatus()));
+            throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
+        }
+        cookies = response.getCookies();
+
+        return post8(state);
+
+    }
 
 
     /**
@@ -315,12 +347,12 @@ public class AuthPost
      * @param state state
      * @return
      */
-    private String post7(String state) throws Exception
+    private String post8(String state) throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
         headers.put("Host", "auth0.openai.com");
-        headers.put("Referer", String.format(URL_7, state));
+        headers.put("Referer", String.format(URL_8, state));
         headers.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
         headers.put("Content-Type", "application/x-www-form-urlencoded");
         headers.put("Origin", "https://auth0.openai.com");
@@ -330,15 +362,26 @@ public class AuthPost
         payload.put("username", openAiAuth.getEmail());
         payload.put("password", openAiAuth.getPassword());
         payload.put("action", "default");
-        HttpResponse response = HttpRequest.post(String.format(URL_7, state)).headerMap(headers, true).form(payload)
+        HttpResponse response = HttpRequest.post(String.format(URL_8, state)).headerMap(headers, true).form(payload)
                 .setProxy(openAiAuth.getProxy()).cookie(cookies).execute();
         if (response.getStatus() == 400)
         {
-            throw new PostException("400001", "The email or password is incorrect.");
+            if (response.body().contains("Wrong email or password"))
+            {
+                throw new PostException("400001", "Wrong email or password");
+            }
+            else if (response.body().contains("will be blocked"))
+            {
+                throw new PostException("400002", "We have detected suspicious login behavior and further attempts will be blocked. Please contact the administrator");
+            }
+            else
+            {
+                throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
+            }
         }
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
-            log.error(formatMsg1(URL_7, response.getStatus()));
+            log.error(formatMsg1(URL_8, response.getStatus()));
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
 
@@ -346,7 +389,7 @@ public class AuthPost
 
         String newstate = response.body().split("state")[1];
         newstate = newstate.split("\"")[0].substring(1);
-        return post8(state, newstate);
+        return post9(state, newstate);
     }
 
 
@@ -359,27 +402,27 @@ public class AuthPost
      * @param newstate 新的 state
      * @return
      */
-    private String post8(String state, String newstate) throws Exception
+    private String post9(String state, String newstate) throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
         headers.put("Host", "auth0.openai.com");
-        headers.put("Referer", String.format(URL_8, state));
+        headers.put("Referer", String.format(URL_9, state));
         headers.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
         headers.put("Content-Type", "application/x-www-form-urlencoded");
         headers.put("Origin", "https://auth0.openai.com");
 
-        HttpResponse response = HttpRequest.get(String.format(URL_8, newstate)).headerMap(headers, true)
+        HttpResponse response = HttpRequest.get(String.format(URL_9, newstate)).headerMap(headers, true)
                 .setProxy(openAiAuth.getProxy()).cookie(cookies).execute();
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
-            log.error(formatMsg1(URL_8, response.getStatus()));
+            log.error(formatMsg1(URL_9, response.getStatus()));
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         cookies = response.getCookies();
         String url = response.body().split(" href=\"")[1];
         url = url.split("\"")[0];
-        return post9(url);
+        return post10(url);
 
     }
 
@@ -392,7 +435,7 @@ public class AuthPost
      * @param url 上一步返回的 url
      * @return
      */
-    private String post9(String url) throws Exception
+    private String post10(String url) throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -426,19 +469,19 @@ public class AuthPost
      * @author gulihua
      * @return
      */
-    private String post11() throws Exception
+    private String post11() throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
         headers.put("Host", "explorer.api.openai.com");
-        headers.put("Referer", URL_10);
+        headers.put("Referer", URL_11);
         headers.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 
-        HttpResponse response = HttpRequest.get(URL_10).headerMap(headers, true).setProxy(openAiAuth.getProxy())
+        HttpResponse response = HttpRequest.get(URL_11).headerMap(headers, true).setProxy(openAiAuth.getProxy())
                 .cookie(cookies).execute();
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
-            log.error(formatMsg1(URL_10, response.getStatus()));
+            log.error(formatMsg1(URL_11, response.getStatus()));
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
 
@@ -455,13 +498,14 @@ public class AuthPost
         }
         catch (Exception e)
         {
-            log.error(formatMsg2(URL_10, response.body()));
+            log.error(formatMsg2(URL_11, response.body()));
             throw new PostException("300001", "The accessToken cannot be obtained.");
 
         }
         if (StrUtil.isBlank(accessToken))
         {
-            throw new Exception("Fetch accessToken failed, maybe the interface on the website has changed.");
+            throw new PostException("300001",
+                    "Fetch accessToken failed, maybe the interface on the website has changed.");
         }
 
         return accessToken;

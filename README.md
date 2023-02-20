@@ -24,7 +24,7 @@ String accessToken=new OpenAiAuth("<Your email>","Your password",new Proxy(Proxy
 <dependency>
     <groupId>cn.jianwoo.openai.auth</groupId>
     <artifactId>openAiAuth</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.3</version>
 </dependency>
 
 <!--仓库地址-->

@@ -58,7 +58,7 @@ public class OpenAiAuth
     }
 
 
-    public String auth() throws Exception
+    public String auth() throws PostException
     {
         return new AuthPost(this).post();
     }
