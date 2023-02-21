@@ -70,7 +70,7 @@ public class AuthPost
     }
 
 
-    public String post() throws PostException
+    public SessionRes post() throws PostException
     {
         return post1();
     }
@@ -83,7 +83,7 @@ public class AuthPost
      * @author gulihua
      * @return
      */
-    private String post1() throws PostException
+    private SessionRes post1() throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -108,7 +108,7 @@ public class AuthPost
      * @author gulihua
      * @return
      */
-    private String post2() throws PostException
+    private SessionRes post2() throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -150,7 +150,7 @@ public class AuthPost
      * @param csrfToken csrf token
      * @return
      */
-    private String post3(String csrfToken) throws PostException
+    private SessionRes post3(String csrfToken) throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -207,7 +207,7 @@ public class AuthPost
      * @param url 上一步返回的 url 地址
      * @return
      */
-    private String post4(String url) throws PostException
+    private SessionRes post4(String url) throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -243,7 +243,7 @@ public class AuthPost
      * @param state state
      * @return
      */
-    private String post5(String state) throws PostException
+    private SessionRes post5(String state) throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -273,7 +273,7 @@ public class AuthPost
      * @param state state
      * @return
      */
-    private String post6(String state) throws PostException
+    private SessionRes post6(String state) throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -309,6 +309,8 @@ public class AuthPost
 
         return post7(state);
     }
+
+
     /**
      *
      * 请求/u/login/password?state=%s
@@ -317,7 +319,7 @@ public class AuthPost
      * @param state state
      * @return
      */
-    private String post7(String state) throws PostException
+    private SessionRes post7(String state) throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -347,7 +349,7 @@ public class AuthPost
      * @param state state
      * @return
      */
-    private String post8(String state) throws PostException
+    private SessionRes post8(String state) throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -372,7 +374,8 @@ public class AuthPost
             }
             else if (response.body().contains("will be blocked"))
             {
-                throw new PostException("400002", "We have detected suspicious login behavior and further attempts will be blocked. Please contact the administrator");
+                throw new PostException("400002",
+                        "We have detected suspicious login behavior and further attempts will be blocked. Please contact the administrator");
             }
             else
             {
@@ -402,7 +405,7 @@ public class AuthPost
      * @param newstate 新的 state
      * @return
      */
-    private String post9(String state, String newstate) throws PostException
+    private SessionRes post9(String state, String newstate) throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -435,7 +438,7 @@ public class AuthPost
      * @param url 上一步返回的 url
      * @return
      */
-    private String post10(String url) throws PostException
+    private SessionRes post10(String url) throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -469,7 +472,7 @@ public class AuthPost
      * @author gulihua
      * @return
      */
-    private String post11() throws PostException
+    private SessionRes post11() throws PostException
     {
         Map<String, String> headers = new HashMap<>();
         headers.putAll(HEADER);
@@ -488,12 +491,22 @@ public class AuthPost
 //
 //        System.out.println(response.body());
 
-        String accessToken = null;
+        SessionRes session = SessionRes.getInstance();
+
         try
         {
             String res = response.body();
             JSONObject json = JSONObject.parseObject(res);
-            accessToken = json.getString("accessToken");
+            session.setAccessToken(json.getString("accessToken"));
+            session.setExpires(json.getString("expires"));
+            JSONObject user = json.getJSONObject("user");
+            if (user != null)
+            {
+                session.setEmail(user.getString("email"));
+                session.setId(user.getString("id"));
+                session.setImage(user.getString("image"));
+            }
+            session.setSecureNextAuthSessionToken(response.getCookie("__Secure-next-auth.session-token").getValue());
 
         }
         catch (Exception e)
@@ -502,13 +515,13 @@ public class AuthPost
             throw new PostException("300001", "The accessToken cannot be obtained.");
 
         }
-        if (StrUtil.isBlank(accessToken))
+        if (StrUtil.isBlank(session.getAccessToken()))
         {
             throw new PostException("300001",
                     "Fetch accessToken failed, maybe the interface on the website has changed.");
         }
 
-        return accessToken;
+        return session;
 
     }
 

@@ -58,7 +58,7 @@ public class OpenAiAuth
     }
 
 
-    public String auth() throws PostException
+    public SessionRes auth() throws PostException
     {
         return new AuthPost(this).post();
     }
