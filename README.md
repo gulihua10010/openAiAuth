@@ -7,13 +7,13 @@ openAI/chatGpt 用户名、密码授权登录 jar 包封装
 ## 用法
 
 ```java
-String accessToken=new OpenAiAuth("<Your email>","Your password").auth();
+SessionRes session =new OpenAiAuth("<Your email>","Your password").auth();
 ```
 
 #### 使用代理
 
 ```java
-String accessToken=new OpenAiAuth("<Your email>","Your password",new Proxy(Proxy.Type.HTTP,
+SessionRes session =new OpenAiAuth("<Your email>","Your password",new Proxy(Proxy.Type.HTTP,
         new InetSocketAddress("<host>","<port>"))).auth();
 ```
 

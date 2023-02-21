@@ -7,12 +7,12 @@ OpenAI/chatGpt User name and password Authorized login The jar package is encaps
 ## Usage
 
 ```java
-String accessToken = new OpenAiAuth("<Your email>", "Your password").auth();
+SessionRes session = new OpenAiAuth("<Your email>", "Your password").auth();
 ```
 #### Use proxy
 
 ```java
-String accessToken = new OpenAiAuth("<Your email>", "Your password", new Proxy(Proxy.Type.HTTP,
+SessionRes session = new OpenAiAuth("<Your email>", "Your password", new Proxy(Proxy.Type.HTTP,
                 new InetSocketAddress("<host>", "<port>"))).auth();
 ```
 
