@@ -12,6 +12,7 @@ SessionRes session = new OpenAiAuth("<Your email>", "Your password").auth();
 #### Use proxy
 
 ```java
+// &lt; host&gt; No http or https prefix!
 SessionRes session = new OpenAiAuth("<Your email>", "Your password", new Proxy(Proxy.Type.HTTP,
                 new InetSocketAddress("<host>", "<port>"))).auth();
 ```
@@ -24,7 +25,7 @@ SessionRes session = new OpenAiAuth("<Your email>", "Your password", new Proxy(P
 <dependency>
     <groupId>cn.jianwoo.openai.auth</groupId>
     <artifactId>openAiAuth</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.5</version>
 </dependency>
 
 <!--仓库地址-->
@@ -48,6 +49,10 @@ SessionRes session = new OpenAiAuth("<Your email>", "Your password", new Proxy(P
 
 Since the API interface of the official website may be adjusted sometimes, it is not guaranteed that this jar package will be successfully adjusted. If it fails, please leave a message.
 This program does not transfer or save any data to the server!
+
+## About the response data
+If "You are being rate limited." or "We have detected suspicious login behavior and further attempts will be blocked"
+This situation is generally not on the official website, this is because of excessive traffic or login frequently, and so on can be logged in.
 
 
 

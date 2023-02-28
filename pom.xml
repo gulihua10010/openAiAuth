@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>cn.jianwoo.openai.auth</groupId>
+    <groupId>cn.jianwoo.openai</groupId>
     <artifactId>openAiAuth</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
     <name>fundebug-java-notifier</name>
     <url>https://github.com/gulihua10010/openAiAuth</url>
     <description>openAI/chatGpt User name and password Authorized login The jar package is encapsulated</description>

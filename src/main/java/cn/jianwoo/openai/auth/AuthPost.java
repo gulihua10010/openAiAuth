@@ -93,6 +93,7 @@ public class AuthPost
         if (response.getStatus() != 200)
         {
             log.error(formatMsg1(URL_1, response.getStatus()));
+            log.error(">>>>response:{}",response.body());
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         cookies = response.getCookies();
@@ -121,6 +122,7 @@ public class AuthPost
         if (response.getStatus() != 200)
         {
             log.error(formatMsg1(URL_2, response.getStatus()));
+            log.error(">>>>response:{}",response.body());
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         String csrfToken = null;
@@ -173,6 +175,7 @@ public class AuthPost
         if (response.getStatus() != 200)
         {
             log.error(formatMsg1(URL_3, response.getStatus()));
+            log.error(">>>>response:{}",response.body());
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
 
@@ -219,6 +222,10 @@ public class AuthPost
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
             log.error(formatMsg1(url, response.getStatus()));
+            log.error(">>>>response:{}",response.body());
+            if (response.body().contains("rate limited")){
+                throw new PostException(ERROR_CODE, "You are being rate limited.");
+            }
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         if (!response.body().contains("state"))
@@ -256,6 +263,7 @@ public class AuthPost
         if (response.getStatus() != 200)
         {
             log.error(formatMsg1(URL_5, response.getStatus()));
+            log.error(">>>>response:{}",response.body());
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         cookies = response.getCookies();
@@ -297,6 +305,8 @@ public class AuthPost
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
             log.error(formatMsg1(URL_6, response.getStatus()));
+            log.error(">>>>response:{}",response.body());
+
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         if (!response.body().contains("state"))
@@ -332,6 +342,8 @@ public class AuthPost
         if (response.getStatus() != 200)
         {
             log.error(formatMsg1(URL_7, response.getStatus()));
+            log.error(">>>>response:{}",response.body());
+
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         cookies = response.getCookies();
@@ -385,6 +397,7 @@ public class AuthPost
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
             log.error(formatMsg1(URL_8, response.getStatus()));
+            log.error(">>>>response:{}",response.body());
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
 
@@ -420,6 +433,7 @@ public class AuthPost
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
             log.error(formatMsg1(URL_9, response.getStatus()));
+            log.error(">>>>response:{}",response.body());
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         cookies = response.getCookies();
@@ -451,6 +465,7 @@ public class AuthPost
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
             log.error(formatMsg1(url, response.getStatus()));
+            log.error(">>>>response:{}",response.body());
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
 
@@ -485,6 +500,7 @@ public class AuthPost
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
             log.error(formatMsg1(URL_11, response.getStatus()));
+            log.error(">>>>response:{}",response.body());
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
 
