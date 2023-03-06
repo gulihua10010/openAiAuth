@@ -14,7 +14,7 @@ public class Test
 {
     public static void main(String[] args) throws PostException
     {
-        SessionRes accessToken = new OpenAiAuth("1729846470@qq.com", "xxxxxx").auth();
+        SessionRes accessToken = new OpenAiAuth("1729846471@qq.com", "***********").auth();
 //        SessionRes accessToken = new OpenAiAuth("1729846470@qq.com", "xxxxxx", new Proxy(Proxy.Type.HTTP,
 //                new InetSocketAddress("127.0.0.1", 7890))).auth();
         System.out.println(JSON.toJSONString(accessToken));

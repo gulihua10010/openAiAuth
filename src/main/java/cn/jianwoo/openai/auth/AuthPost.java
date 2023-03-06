@@ -4,17 +4,15 @@ import java.net.HttpCookie;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
-import cn.hutool.core.util.ReUtil;
-import cn.hutool.http.HtmlUtil;
-import cn.hutool.log.Log;
-import cn.hutool.log.LogFactory;
 import com.alibaba.fastjson.JSONObject;
 
+import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 
 /**
  * OpenAiAuth 登录实现
@@ -44,6 +42,9 @@ public class AuthPost
     public static final String URL_11 = "https://explorer.api.openai.com/api/auth/session";
     public static final String ERR_MESSAGE1 = "Request Url (%s) failed with error code %s";
     public static final String ERR_MESSAGE2 = "Request Url (%s) failed with msg %s";
+
+    public static final String EMAIL_REGEX = "^([a-zA-Z0-9_\\.\\-])+\\@(([a-zA-Z0-9\\-])+\\.)+([a-zA-Z0-9]{2,4})+$";
+
     private OpenAiAuth openAiAuth;
     /** 会话共享 */
     private List<HttpCookie> cookies;
@@ -72,6 +73,10 @@ public class AuthPost
 
     public SessionRes post() throws PostException
     {
+        if (!isEmail(this.openAiAuth.getEmail()))
+        {
+            throw new PostException(ERROR_CODE, "Email is not valid.");
+        }
         return post1();
     }
 
@@ -93,7 +98,7 @@ public class AuthPost
         if (response.getStatus() != 200)
         {
             log.error(formatMsg1(URL_1, response.getStatus()));
-            log.error(">>>>response:{}",response.body());
+            log.error(">>>>response:{}", response.body());
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         cookies = response.getCookies();
@@ -122,7 +127,7 @@ public class AuthPost
         if (response.getStatus() != 200)
         {
             log.error(formatMsg1(URL_2, response.getStatus()));
-            log.error(">>>>response:{}",response.body());
+            log.error(">>>>response:{}", response.body());
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         String csrfToken = null;
@@ -175,7 +180,7 @@ public class AuthPost
         if (response.getStatus() != 200)
         {
             log.error(formatMsg1(URL_3, response.getStatus()));
-            log.error(">>>>response:{}",response.body());
+            log.error(">>>>response:{}", response.body());
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
 
@@ -222,8 +227,9 @@ public class AuthPost
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
             log.error(formatMsg1(url, response.getStatus()));
-            log.error(">>>>response:{}",response.body());
-            if (response.body().contains("rate limited")){
+            log.error(">>>>response:{}", response.body());
+            if (response.body().contains("rate limited"))
+            {
                 throw new PostException(ERROR_CODE, "You are being rate limited.");
             }
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
@@ -263,7 +269,7 @@ public class AuthPost
         if (response.getStatus() != 200)
         {
             log.error(formatMsg1(URL_5, response.getStatus()));
-            log.error(">>>>response:{}",response.body());
+            log.error(">>>>response:{}", response.body());
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         cookies = response.getCookies();
@@ -305,8 +311,11 @@ public class AuthPost
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
             log.error(formatMsg1(URL_6, response.getStatus()));
-            log.error(">>>>response:{}",response.body());
-
+            log.error(">>>>response:{}", response.body());
+            if (response.body().contains("Email is not valid"))
+            {
+                throw new PostException(ERROR_CODE, "Email is not valid.");
+            }
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         if (!response.body().contains("state"))
@@ -342,7 +351,7 @@ public class AuthPost
         if (response.getStatus() != 200)
         {
             log.error(formatMsg1(URL_7, response.getStatus()));
-            log.error(">>>>response:{}",response.body());
+            log.error(">>>>response:{}", response.body());
 
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
@@ -397,7 +406,7 @@ public class AuthPost
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
             log.error(formatMsg1(URL_8, response.getStatus()));
-            log.error(">>>>response:{}",response.body());
+            log.error(">>>>response:{}", response.body());
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
 
@@ -433,7 +442,7 @@ public class AuthPost
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
             log.error(formatMsg1(URL_9, response.getStatus()));
-            log.error(">>>>response:{}",response.body());
+            log.error(">>>>response:{}", response.body());
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         cookies = response.getCookies();
@@ -465,7 +474,7 @@ public class AuthPost
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
             log.error(formatMsg1(url, response.getStatus()));
-            log.error(">>>>response:{}",response.body());
+            log.error(">>>>response:{}", response.body());
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
 
@@ -500,7 +509,7 @@ public class AuthPost
         if (response.getStatus() != 200 && response.getStatus() != 302)
         {
             log.error(formatMsg1(URL_11, response.getStatus()));
-            log.error(">>>>response:{}",response.body());
+            log.error(">>>>response:{}", response.body());
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
 
@@ -551,5 +560,19 @@ public class AuthPost
     private String formatMsg2(String url, String msg)
     {
         return String.format(ERR_MESSAGE2, url, msg);
+    }
+
+
+    /**
+     * 正则匹配字符串是否是邮箱格式的字符串
+     *
+     * @param email 邮箱
+     * @return
+     * @author gulihua
+     */
+    public static boolean isEmail(String email)
+    {
+        return ReUtil.isMatch(EMAIL_REGEX, email);
+
     }
 }
