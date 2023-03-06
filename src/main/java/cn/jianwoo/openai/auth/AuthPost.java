@@ -443,11 +443,15 @@ public class AuthPost
         {
             log.error(formatMsg1(URL_9, response.getStatus()));
             log.error(">>>>response:{}", response.body());
+
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
         cookies = response.getCookies();
         String url = response.body().split(" href=\"")[1];
         url = url.split("\"")[0];
+        if (url.contains("unsupported_country")) {
+            throw new PostException(ERROR_CODE, "Unsupported country.");
+        }
         return post10(url);
 
     }
@@ -475,6 +479,7 @@ public class AuthPost
         {
             log.error(formatMsg1(url, response.getStatus()));
             log.error(">>>>response:{}", response.body());
+
             throw new PostException(ERROR_CODE, ERROR_MSG, response.getStatus());
         }
 

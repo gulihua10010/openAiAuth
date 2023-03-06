@@ -25,7 +25,7 @@ SessionRes session = new OpenAiAuth("<Your email>", "Your password", new Proxy(P
 <dependency>
     <groupId>cn.jianwoo.openai.auth</groupId>
     <artifactId>openAiAuth</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
 </dependency>
 
 <!--仓库地址-->
